@@ -14,7 +14,7 @@ volatile int count_highbyte = 0xF6;
 volatile int count_lowbyte = 0x3C;
 volatile int direction = 0;
 volatile int note_value = 0x3C;
-volatile bool run = false;
+//volatile bool run = false;
 //volatile int stop_flag = 0;
 
 //;*****************************************************************************
@@ -108,8 +108,8 @@ void interrupt low_priority TOGGLE_SEQUENCE(void)
     
 }
 
-void interrupt START_STOP(void)
+/*void interrupt START_STOP(void)
 {
     INTCONbits.INT0F = 0;
     run = !run;
-}    
+} */   

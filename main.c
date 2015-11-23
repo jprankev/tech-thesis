@@ -7,23 +7,28 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-//int tick_count=0x0;
 
 int note_sent = 0;
 
 
 void main(void)
 {
+ 
 	int x = 0;
     int note = 0;
 	port_init();
 	TMR0_INIT();
-    run = false;
+    bool *run = false;
+    
 	while(x == 0)
+        
+     
  //   stop_flag = 0;
 	{   
- //       run = 0;
-        switch (run)
+        if (SW5 == 0)
+            debounce(&run);
+            
+        switch (*run)
         {        
             case false:
             {   

@@ -6,7 +6,7 @@
             <name>tech-thesis</name>
             <creation-uuid>6839cef9-3f5a-4c95-8802-a38753a8230c</creation-uuid>
             <make-project-type>0</make-project-type>
-            <c-extensions/>
+            <c-extensions>c</c-extensions>
             <cpp-extensions/>
             <header-extensions/>
             <asminc-extensions/>
