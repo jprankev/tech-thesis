@@ -36,7 +36,7 @@ void main(void)
             case 0:
             {   
 
-                       
+                    /*   
                     note_value = 0x3C;
                     for (note = 0; note <= 13; note++)
                     {
@@ -56,7 +56,7 @@ void main(void)
                     sequence_count = 5; 
                     sequence_flag = 0;
                     note_count = 1;
-
+*/
             }
             break;
   
@@ -245,13 +245,17 @@ void SEND_NOTEOFF_DOWN(void)
 int debounce(int run)
 {
     PIR1bits.TMR1IF = 0;        //clear interrupt flag
-    TMR1H = 0xFF;
-    TMR1L = 0x83;
+    TMR1H = 0xF6;
+    TMR1L = 0xC3;
     static unsigned short State = 0; // Current debounce status 
     State=(State<<1) | SW5 | 0xe000; 
     if(State==0xf000)
-        run = 1; 
-    else run = 0;
+    {
+        if (run == 1)
+                run = 0;
+        else run = 1;
+    }    
+    else run = run;
     return run;
  
 }
