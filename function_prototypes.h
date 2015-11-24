@@ -12,4 +12,5 @@ void sequence_up(void);
 void sequence_down(void);
 void SEND_NOTEOFF(void);
 void SEND_NOTEOFF_DOWN(void);
-bool debounce(bool run);
+int  debounce(int run);
+void TMR1_INIT(void);

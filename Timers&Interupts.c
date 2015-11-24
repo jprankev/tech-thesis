@@ -47,7 +47,20 @@ void TMR0_INIT(void)
     
 }
 
-
+void TMR1_INIT(void)
+{
+    T1CONbits.TMR1CS1 = 0;      //selects FOSC/4 as clock source
+    T1CONbits.TMR1CS0 = 0;
+    T1CONbits.T1CKPS1 = 1;      //selects 1:8 prescaler
+    T1CONbits.T1CKPS1 = 1;
+    T1CONbits.T1SOSCEN = 1;     //enable secondary oscillator bit
+    T1CONbits.T1RD16 = 1;       //write in 16 bit operation
+    TMR1H = 0xFF;
+    TMR1L = 0x83;
+    PIR1bits.TMR1IF = 0;        //clear interrupt flag
+    PIE1bits.TMR1IE = 1;        //enable interrupt
+    T1CONbits.TMR1ON = 1;       //enable timer1      
+}
     
 
 

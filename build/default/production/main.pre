@@ -40,15 +40,17 @@
 #pragma config EBTR3 = OFF
 #pragma config EBTRB = OFF
 
-# 26 "C:\Program Files\Microchip\xc8\v1.34\include\htc.h"
+# 26 "/Applications/microchip/xc8/v1.35/include/htc.h"
 extern const char __xc8_OPTIM_SPEED;
 
+extern double __fpnormalize(double);
 
-# 13 "C:\Program Files\Microchip\xc8\v1.34\include\xc8debug.h"
+
+# 13 "/Applications/microchip/xc8/v1.35/include/xc8debug.h"
 #pragma intrinsic(__builtin_software_breakpoint)
 extern void __builtin_software_breakpoint(void);
 
-# 49 "C:\Program Files\Microchip\xc8\v1.34\include\pic18f45k22.h"
+# 49 "/Applications/microchip/xc8/v1.35/include/pic18f45k22.h"
 extern volatile unsigned char ANSELA @ 0xF38;
 
 asm("ANSELA equ 0F38h");
@@ -9335,16 +9337,17 @@ extern volatile __bit nW2 @ (((unsigned) &SSP2STAT)*8) + 2;
 
 extern volatile __bit nWRITE2 @ (((unsigned) &SSP2STAT)*8) + 2;
 
-# 18 "C:\Program Files\Microchip\xc8\v1.34\include\pic18.h"
-__attribute__((__unsupported__("The flash_write routine is no longer supported. Please use the peripheral library functions: WriteBytesFlash, WriteBlockFlash or WriteWordFlash"))) void flash_write(const unsigned char *, unsigned int, __far unsigned char *);
+# 18 "/Applications/microchip/xc8/v1.35/include/pic18.h"
+__attribute__((__unsupported__("The " "flash_write" " routine is no longer supported. Please use the MPLAB X MCC."))) void flash_write(const unsigned char *, unsigned int, __far unsigned char *);
+__attribute__((__unsupported__("The " "EraseFlash" " routine is no longer supported. Please use the MPLAB X MCC."))) void EraseFlash(unsigned long startaddr, unsigned long endaddr);
 
 
-# 41
+# 42
 #pragma intrinsic(__nop)
 extern void __nop(void);
 
 
-# 160
+# 151
 #pragma intrinsic(_delay)
 extern __nonreentrant void _delay(unsigned long);
 #pragma intrinsic(_delaywdt)
@@ -9363,7 +9366,8 @@ void sequence_up(void);
 void sequence_down(void);
 void SEND_NOTEOFF(void);
 void SEND_NOTEOFF_DOWN(void);
-void interrupt START_STOP(void);
+int debounce(int run);
+void TMR1_INIT(void);
 
 # 6 "port_init.c"
 void port_init(void)
@@ -9450,7 +9454,22 @@ TMR0L = 0xFF;
 
 }
 
-# 66
+void TMR1_INIT(void)
+{
+T1CONbits.TMR1CS1 = 0;
+T1CONbits.TMR1CS0 = 0;
+T1CONbits.T1CKPS1 = 1;
+T1CONbits.T1CKPS1 = 1;
+T1CONbits.T1SOSCEN = 1;
+T1CONbits.T1RD16 = 1;
+TMR1H = 0xFF;
+TMR1L = 0x83;
+PIR1bits.TMR1IF = 0;
+PIE1bits.TMR1IE = 1;
+T1CONbits.TMR1ON = 1;
+}
+
+# 79
 void interrupt low_priority TOGGLE_SEQUENCE(void)
 {
 INTCONbits.TMR0IF = 0;
@@ -9496,7 +9515,7 @@ sequence_count = 5;
 
 }
 
-# 7 "C:\Program Files\Microchip\xc8\v1.34\include\stdarg.h"
+# 7 "/Applications/microchip/xc8/v1.35/include/stdarg.h"
 typedef void * va_list[1];
 
 #pragma intrinsic(__va_start)
@@ -9505,47 +9524,10 @@ extern void * __va_start(void);
 #pragma intrinsic(__va_arg)
 extern void * __va_arg(void *, ...);
 
-# 12 "C:\Program Files\Microchip\xc8\v1.34\include\stdbool.h"
+# 12 "/Applications/microchip/xc8/v1.35/include/stdbool.h"
 typedef unsigned char bool;
 
-# 19 "debounce.h"
-unsigned char debounce (unsigned char *port,unsigned char pin);
-
-# 13 "debounce.c"
-unsigned char debounce (unsigned char *port,unsigned char pin)
-{
-overlay unsigned char count_low;
-overlay unsigned char count_high;
-
-# 29
-count_low = count_high = 0;
-
-do
-{
-
-Delay1KTCYx(2*1);
-
-if (*port & pin == 0u){
-count_low++;
-count_high = 0;
-}
-else{
-count_low = 0;
-count_high++;
-}
-
-
-}while(count_low< 25u && count_high < 25u);
-
-if (count_low >= 25u){
-return 0u;
-}
-else{
-return 1u;
-}
-}
-
-# 14 "main.c"
+# 11 "main.c"
 int note_sent = 0;
 
 
@@ -9556,23 +9538,49 @@ int x = 0;
 int note = 0;
 port_init();
 TMR0_INIT();
-bool run = 0;
+TMR1_INIT();
+int run = 0;
 
 while(x == 0)
 
 
 
 {
-
+if (PIR1bits.TMR1IF = 1)
+{
+run = debounce(run);
+PIR1bits.TMR1IF = 0;
+}
 switch (run)
 {
 case 0:
 {
 
-# 59
-break;
+
+note_value = 0x3C;
+for (note = 0; note <= 13; note++)
+{
+TXREG2 = 0b1001000;
+while (PIR3bits.TX2IF == 0);
+TXREG2 = note_value;
+while (PIR3bits.TX2IF == 0);
+TXREG2 = 0b0000000;
+while (PIR3bits.TX2IF == 0);
+note_value = note_value++;
+}
+note_value = 0x3C;
+direction = 0;
+note_sent = 0;
+count_highbyte = 0xFF;
+count_lowbyte = 0xFF;
+sequence_count = 5;
+sequence_flag = 0;
+note_count = 1;
 
 }
+break;
+
+
 
 case 1:
 {
@@ -9604,14 +9612,14 @@ break;
 }
 }
 
-# 97
+# 99
 void buttons(void)
 {
 
-# 106
+# 108
 }
 
-# 121
+# 123
 void sequence_up(void)
 {
 if (PORTAbits.RA3 == 1)
@@ -9625,7 +9633,7 @@ SEND_NOTEOFF();
 
 }
 
-# 141
+# 143
 void sequence_down(void)
 {
 if ((sequence_flag == 0) && (note_sent == 0))
@@ -9636,7 +9644,7 @@ else if ((sequence_flag == 1) && (note_sent == 1))
 SEND_NOTEOFF_DOWN();
 }
 
-# 159
+# 161
 void SEND_NOTE(void)
 {
 TXREG2 = 0b10010000;
@@ -9649,7 +9657,7 @@ note_sent = 1;
 PORTAbits.RA2 = 1;
 }
 
-# 184
+# 186
 void SEND_NOTEOFF(void)
 {
 TXREG2 = 0b10000000;
@@ -9672,7 +9680,7 @@ note_value = (note_value + 1);
 }
 }
 
-# 221
+# 223
 void SEND_NOTEOFF_DOWN(void)
 {
 TXREG2 = 0b10000000;
@@ -9692,5 +9700,19 @@ else
 direction = 2;
 note_value = (note_value - 1);
 }
+
+}
+
+int debounce(int run)
+{
+PIR1bits.TMR1IF = 0;
+TMR1H = 0xFF;
+TMR1L = 0x83;
+static unsigned short State = 0;
+State=(State<<1) | PORTBbits.RB0 | 0xe000;
+if(State==0xf000)
+run = 1;
+else run = 0;
+return run;
 
 }

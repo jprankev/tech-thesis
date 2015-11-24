@@ -6,7 +6,7 @@
 #include "Timers&Interupts.c"
 #include <stdarg.h>
 #include <stdbool.h>
-
+#include "debounce.c"
 
 int note_sent = 0;
 
@@ -18,23 +18,26 @@ void main(void)
     int note = 0;
 	port_init();
 	TMR0_INIT();
-    bool *run = false;
+    TMR1_INIT();
+    int run = 0;
     
 	while(x == 0)
         
      
  //   stop_flag = 0;
 	{   
-        if (SW5 == 0)
-            debounce(&run);
-            
-        switch (*run)
+        if (PIR1bits.TMR1IF = 1)
+        {
+            run = debounce(run);
+            PIR1bits.TMR1IF = 0;
+        }    
+        switch (run)
         {        
-            case false:
+            case 0:
             {   
-  //              if (stop_flag == 1)
- //               {    
- /*                   note_value = 0x3C;
+
+                       
+                    note_value = 0x3C;
                     for (note = 0; note <= 13; note++)
                     {
                         TXREG2 = 0b1001000;
@@ -53,13 +56,13 @@ void main(void)
                     sequence_count = 5; 
                     sequence_flag = 0;
                     note_count = 1;
-                    stop_flag = 0; */
-//                }
+
+            }
             break;
   
-            }    
+              
         
-            case true:
+            case 1:
             {    
                 switch (direction) 
                 {
@@ -237,4 +240,18 @@ void SEND_NOTEOFF_DOWN(void)
         note_value = (note_value - 1);
     }
 
+}
+
+int debounce(int run)
+{
+    PIR1bits.TMR1IF = 0;        //clear interrupt flag
+    TMR1H = 0xFF;
+    TMR1L = 0x83;
+    static unsigned short State = 0; // Current debounce status 
+    State=(State<<1) | SW5 | 0xe000; 
+    if(State==0xf000)
+        run = 1; 
+    else run = 0;
+    return run;
+ 
 }
